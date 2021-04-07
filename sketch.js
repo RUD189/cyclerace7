@@ -1,290 +1,85 @@
-var path,mainCyclist;
-var pathImg,mainRacerImg1,mainRacerImg2;
+var starImg,bgImg;
+var star, starBody;
+//create variable for fairy sprite and fairyImg
+var fairy,fairyImg,fairys;
 
-var oppPink1Img,oppPink2Img;
-var oppYellow1Img,oppYellow2Img;
-var oppRed1Img,oppRed2Img;
-var gameOverImg,cycleBell;
-var obstacle1img,obstacle2img,obstacle3img;
-var obstacle1,obstacle2,obstacle3;
+const Engine = Matter.Engine;
+const World = Matter.World;
+const Bodies = Matter.Bodies;
+const Body = Matter.Body;
 
-var pinkCG, yellowCG,redCG; 
+function preload()
+{
+	starImg = loadImage("star.png");
+	bgImg = loadImage("starNight.png");
+	//load animation for fairy here
 
-var END =0;
-var PLAY =1;
-var gameState = PLAY;
+	fairyImg = loadAnimation("fairyimage1.png","fairyimage2.png");
+	fairys = loadSound("JoyMusic.mp3");
+}
 
-var distance=0;
-var gameOver, restart;
+function setup() {
+	createCanvas(800, 750);
 
-function preload(){
-  pathImg = loadImage("Road.png");
-  mainRacerImg1 = loadAnimation("mainPlayer1.png","mainPlayer2.png");
-  mainRacerImg2= loadAnimation("mainPlayer3.png");
-  
-  oppPink1Img = loadAnimation("opponent1.png","opponent2.png");
-  oppPink2Img = loadAnimation("opponent3.png");
-  
-  oppYellow1Img = loadAnimation("opponent4.png","opponent5.png");
-  oppYellow2Img = loadAnimation("opponent6.png");
-  
-  oppRed1Img = loadAnimation("opponent7.png","opponent8.png");
-  oppRed2Img = loadAnimation("opponent9.png");
-  
-  obstacle1img = loadAnimation("obstacle1.png");
-  obstacle2img = loadAnimation("obstacle2.png");
-  obstacle3img = loadAnimation("obstacle3.png");
-  
-  cycleBell = loadSound("bell.mp3");
-  gameOverImg = loadImage("gameOver.png");
+	//write code to play fairyVoice sound
+fairys.play();
+
+	//create fairy sprite and add animation for fairy
+fairy = createSprite(100,580);
+fairy.addAnimation("fairy",fairyImg);
+fairy.scale = 0.2;
+fairy.velocityX = 0;
+
+	star = createSprite(650,30);
+	star.addImage(starImg);
+	star.scale = 0.2;
+
+
+	engine = Engine.create();
+	world = engine.world;
+
+	starBody = Bodies.circle(650 , 30 , 5 , {restitution:0.5, isStatic:true});
+	World.add(world, starBody);
+	
+	Engine.run(engine);
+fairy.setCollider("rectangle",100,250,900,700,0);
+	fairy.debug = false;
 
 }
 
-function setup(){
-  
-createCanvas(1200,300);
-// Moving background
-path=createSprite(100,150);
-path.addImage(pathImg);
-path.velocityX = -5;
-
-//creating boy running
-mainCyclist  = createSprite(70,150);
-mainCyclist.addAnimation("SahilRunning",mainRacerImg1);
-mainCyclist.scale=0.07;
-  
-//set collider for mainCyclist
-
-  
-gameOver = createSprite(650,150);
-gameOver.addImage(gameOverImg);
-gameOver.scale = 0.8;
-gameOver.visible = false;  
-  
-pinkCG = new Group();
-yellowCG = new Group();
-redCG = new Group();
-  obstacle1G = new Group();
-  obstacle2G = new Group();
-  obstacle3G = new Group();
-  
-   mainCyclist.setCollider("circle",0,0,500);
-  mainCyclist.debug = false;
-  
-}
 
 function draw() {
-  background(0);
+  background(bgImg);
+
+  star.x= starBody.position.x 
+  star.y= starBody.position.y 
+
   
+
+  //write code to stop star in the hand of fairy
+  if(star.y > 550 && starBody.position.y > 550 && star.isTouching(fairy)){
+	  Matter.Body.setStatic(starBody,true);
+  }
+  stroke("white");
+  
+text("TO STOP THE STAR YOU WANT TO TOUCH THE STAR WITH FAIRY",200,200);
   drawSprites();
-  textSize(20);
-  fill(255);
-  text("Distance: "+ distance,900,30);
-  
-  if(gameState===PLAY){
-    
-   distance = distance + Math.round(getFrameRate()/50);
-   path.velocityX = -(6 + 2*distance/150);
-  
-   mainCyclist.y = World.mouseY;
-  
-   edges= createEdgeSprites();
-   mainCyclist .collide(edges);
-  
-  //code to reset the background
-  if(path.x < 0 ){
-    path.x = width/2;
-  }
-  
-    //code to play cycle bell sound
-  if(keyDown("space")) {
-    cycleBell.play();
-  }
-  
-  //creating continous opponent players
-  var select_oppPlayer = Math.round(random(1,3));
-
-  if (World.frameCount % 150 == 0) {
-    if (select_oppPlayer == 1) {
-      pinkCyclists();
-    } else if (select_oppPlayer == 2) {
-      yellowCyclists();
-    } else {
-      redCyclists();
-    }
-  }
-    
-    var select_Oo = Math.round(random(1,3));
-    if(World.frameCount % 250 == 0){
-      if(select_Oo == 1){
-        spawnO1();
-      }else if(select_Oo == 2){
-        spawnO2();
-      }else{
-        spawnO3();
-      }
-    }
-    
-   
-  
-   if(pinkCG.isTouching(mainCyclist)){
-     gameState = END;
-     player1.velocityY = 0;
-     player1.addAnimation("opponentPlayer1",oppPink2Img);
-      obstacle1G.setVelocityXEach(0);
-  obstacle2G.setVelocityXEach(0);
-  obstacle3G.setVelocityXEach(0);
-    }
-    
-    if(yellowCG.isTouching(mainCyclist)){
-      gameState = END;
-      player2.velocityY = 0;
-      player2.addAnimation("opponentPlayer2",oppYellow2Img);
-      obstacle1G.setVelocityXEach(0);
-  obstacle2G.setVelocityXEach(0);
-  obstacle3G.setVelocityXEach(0);
-    }
-    
-    if(redCG.isTouching(mainCyclist)){
-      gameState = END;
-      player3.velocityY = 0;
-      player3.addAnimation("opponentPlayer3",oppRed2Img);
-       obstacle1G.setVelocityXEach(0);
-  obstacle2G.setVelocityXEach(0);
-  obstacle3G.setVelocityXEach(0);
-    }
-    
-    if(mainCyclist.isTouching(obstacle1G)){
-      gameState = END;
-      obstacle1G.velocityX = 0;
-     mainCyclist.addAnimation("SahilRunning",mainRacerImg2);
-
-    }
-    
-    if(mainCyclist.isTouching(obstacle2G)){
-      gameState = END;
-      obstacle2G.velocityX = 0;
-     mainCyclist.addAnimation("SahilRunning",mainRacerImg2);
-   
-    }
-    
-     
-    if(mainCyclist.isTouching(obstacle3G)){
-      gameState = END;
-      obstacle3G.velocityX = 0;
-     mainCyclist.addAnimation("SahilRunning",mainRacerImg2);
-    
-    }
-    
-    
-}else if (gameState === END) {
-   
-   gameOver.visible = true;
-    //Add code to show restart game instrution in text here
-   text("PRESS UP ARROW  TO RESTART THE GAME",450,200);
-  
-    //Add code to show restart game instrution in text here
-
-  
-  
-    path.velocityX = 0;
-    mainCyclist.velocityY = 0;
-    mainCyclist.addAnimation("SahilRunning",mainRacerImg2);
-  
-    pinkCG.setVelocityXEach(0);
-    pinkCG.setLifetimeEach(-1);
-  
-    yellowCG.setVelocityXEach(0);
-    yellowCG.setLifetimeEach(-1);
-  
-    redCG.setVelocityXEach(0);
-    redCG.setLifetimeEach(-1);
-  
-  obstacle1G.setVelocityXEach(0);
-    obstacle1G.setLifetimeEach(-1);
-  
-  obstacle2G.setVelocityXEach(0);
-    obstacle2G.setLifetimeEach(-1);
-  
-  obstacle3G.setVelocityXEach(0);
-    obstacle3G.setLifetimeEach(-1);
-  
-  
-    //write condition for calling reset( )
-  if(keyDown("UP_ARROW")){
-    reset();
-  }
-}
-}
-
-function pinkCyclists(){
-        player1 =createSprite(1250,Math.round(random(50, 250)));
-        player1.scale =0.06;
-        player1.velocityX = -(6 + 2*distance/150);
-        player1.addAnimation("opponentPlayer1",oppPink1Img);
-        player1.setLifetime=170;
-        pinkCG.add(player1);
- 
-}
-
-function yellowCyclists(){
-        player2 =createSprite(1250,Math.round(random(50, 250)));
-        player2.scale =0.06;
-        player2.velocityX = -(6 + 2*distance/150);
-        player2.addAnimation("opponentPlayer2",oppYellow1Img);
-        player2.setLifetime=170;
-        yellowCG.add(player2);
 
 }
 
-function redCyclists(){
-        player3 =createSprite(1250,Math.round(random(50, 250)));
-        player3.scale =0.06;
-        player3.velocityX = -(6 + 2*distance/150);
-        player3.addAnimation("opponentPlayer3",oppRed1Img);
-        player3.setLifetime=170;
-        redCG.add(player3);
+function keyPressed() {
 
+	if (keyCode === DOWN_ARROW) {
+		Matter.Body.setStatic(starBody,false); 
+	}
+
+	//write code to move fairy left and right 
+	if(keyCode === RIGHT_ARROW){
+		fairy.x = fairy.x + 35;
+	}
+	if(keyCode === LEFT_ARROW){
+		fairy.x = fairy.x - 35;
+	}
+	
+	
 }
-
-function spawnO1(){
-  obstacle1 =createSprite(1250,Math.round(random(50, 250)));
-        obstacle1.scale =0.09;
-        obstacle1.velocityX = -(6 + 2*distance/150);
-        obstacle1.addAnimation("obstacles",obstacle1img);
-        obstacle1.setLifetime=170;
-        obstacle1G.add(obstacle1);
-}
-function spawnO2(){
-  obstacle2 =createSprite(1250,Math.round(random(50, 250)));
-        obstacle2.scale =0.09;
-        obstacle2.velocityX = -(6 + 2*distance/150);
-        obstacle2.addAnimation("obstacles",obstacle2img);
-        obstacle2.setLifetime=170;
-        obstacle2G.add(obstacle2);
-}
-
-function spawnO3(){
-  obstacle3 =createSprite(1250,Math.round(random(50, 250)));
-        obstacle3.scale =0.09;
-        obstacle3.velocityX = -(6 + 2*distance/150);
-        obstacle3.addAnimation("obstacles",obstacle3img);
-        obstacle3.setLifetime=170;
-        obstacle3G.add(obstacle3);
-}
-
-
-//create reset function here
-function reset(){
-  gameState = PLAY;
-  gameOver.visible = false;
-  mainCyclist.addAnimation("SahilRunning",mainRacerImg1);
-  pinkCG.destroyEach();
-  redCG.destroyEach();
-  yellowCG.destroyEach();
-  distance = 0;
-  
-  obstacle1G.destroyEach();
-  obstacle2G.destroyEach();
-  obstacle3G.destroyEach();
-} 
